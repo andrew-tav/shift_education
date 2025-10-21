@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Async/Await Practice</title>
+    <style>
+        .user-card { 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            background: white;
+        }
+        .loading { opacity: 0.6; }
+        .error { border-color: #f44336; background: #ffebee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏳ Практика с async/await</h1>
+        
+        <button class="button success" id="loadUserBtn">Загрузить пользователя</button>
+        <button class="button info" id="parallelBtn">Параллельные запросы</button>
+        <button class="button error" id="errorHandlingBtn">Обработка ошибок</button>
+        
+        <div id="userContainer"></div>
+        <div class="log" id="log2"></div>
+    </div>
+
+    <script>
+        const userContainer = document.getElementById('userContainer');
+        const log2 = document.getElementById('log2');
+
+        function addLog2(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.borderLeftColor = type === 'error' ? '#f44336' : 
+                                        type === 'success' ? '#4CAF50' : '#2196F3';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log2.appendChild(entry);
+        }
+
+        // 📌 ИМИТАЦИЯ API-ЗАПРОСОВ
+        function fakeApiRequest(data, delay = 1000, shouldFail = false) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    if (shouldFail) {
+                        reject(new Error(`Ошибка загрузки: ${data}`));
+                    } else {
+                        resolve({ data, timestamp: new Date().toLocaleTimeString() });
+                    }
+                }, delay);
+            });
+        }
+
+        // 📌 1. БАЗОВОЕ ИСПОЛЬЗОВАНИЕ async/await
+        document.getElementById('loadUserBtn').addEventListener('click', async function() {
+            addLog2('--- ЗАГРУЗКА ПОЛЬЗОВАТЕЛЯ (async/await) ---');
+            
+            try {
+                // 🔹 async функция ВСЕГДА возвращает Promise
+                // 🔹 await можно использовать ТОЛЬКО внутри async функций
+                
+                addLog2('1. Начинаем загрузку пользователя...');
+                
+                // await "останавливает" выполнение до завершения Promise
+                const user = await fakeApiRequest('Данные пользователя', 1500);
+                addLog2(`2. Пользователь загружен: ${user.data}`, 'success');
+                
+                addLog2('3. Загружаем профиль...');
+                const profile = await fakeApiRequest('Профиль пользователя', 1000);
+                addLog2(`4. Профиль загружен: ${profile.data}`, 'success');
+                
+                addLog2('5. Загружаем настройки...');
+                const settings = await fakeApiRequest('Настройки', 800);
+                addLog2(`6. Настройки загружены: ${settings.data}`, 'success');
+                
+                // Отображаем результат
+                userContainer.innerHTML = `
+                    <div class="user-card">
+                        <h3>✅ Данные успешно загружены!</h3>
+                        <p>Пользователь: ${user.data}</p>
+                        <p>Профиль: ${profile.data}</p>
+                        <p>Настройки: ${settings.data}</p>
+                        <p>Время: ${user.timestamp}</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                addLog2(`❌ Ошибка: ${error.message}`, 'error');
+                userContainer.innerHTML = `
+                    <div class="user-card error">
+                        <h3>❌ Ошибка загрузки</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+
+        // 📌 2. ПАРАЛЛЕЛЬНОЕ ВЫПОЛНЕНИЕ С Promise.all()
+        document.getElementById('parallelBtn').addEventListener('click', async function() {
+            addLog2('--- ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА ---');
+            
+            try {
+                addLog2('Запускаем 3 параллельных запроса...');
+                
+                // 🔹 Promise.all() ждет завершения ВСЕХ промисов
+                // 🔹 Запросы выполняются параллельно (экономит время)
+                const [users, products, orders] = await Promise.all([
+                    fakeApiRequest('Список пользователей', 2000),
+                    fakeApiRequest('Каталог товаров', 1500),
+                    fakeApiRequest('История заказов', 1800)
+                ]);
+                
+                addLog2('✅ Все запросы завершены!', 'success');
+                addLog2(`• ${users.data} (${users.timestamp})`);
+                addLog2(`• ${products.data} (${products.timestamp})`);
+                addLog2(`• ${orders.data} (${orders.timestamp})`);
+                
+            } catch (error) {
+                addLog2(`❌ Один из запросов завершился ошибкой: ${error.message}`, 'error');
+            }
+        });
+
+        // 📌 3. ОБРАБОТКА ОШИБОК В async/await
+        document.getElementById('errorHandlingBtn').addEventListener('click', async function() {
+            addLog2('--- ОБРАБОТКА ОШИБОК ---');
+            
+            try {
+                addLog2('1. Запрос, который завершится успешно...');
+                const successData = await fakeApiRequest('Успешные данные', 1000);
+                addLog2(`✅ ${successData.data}`, 'success');
+                
+                addLog2('2. Запрос, который ЗАВЕРШИТСЯ ОШИБКОЙ...');
+                const failedData = await fakeApiRequest('Проблемные данные', 1000, true);
+                // Эта строка не выполнится из-за ошибки выше
+                addLog2('Этого сообщения вы не увидите...');
+                
+            } catch (error) {
+                /* 
+                🔹 БЛОК catch перехватывает ЛЮБУЮ ошибку в try блоке
+                🔹 Ошибка может быть из await или обычная синхронная
+                */
+                addLog2(`❌ Перехвачена ошибка: ${error.message}`, 'error');
+                
+                // Можно продолжить выполнение после ошибки
+                addLog2('3. Продолжаем работу после ошибки...');
+                const recoveryData = await fakeApiRequest('Восстановленные данные', 800);
+                addLog2(`✅ Восстановление: ${recoveryData.data}`, 'success');
+            } finally {
+                // 🔹 finally выполняется ВСЕГДА
+                addLog2('🏁 Блок finally: Завершение операции');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fetch API Practice</title>
+    <style>
+        .post { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .post h3 { margin-top: 0; color: #333; }
+        .loading { text-align: center; padding: 20px; font-style: italic; color: #666; }
+        .error { background: #ffebee; border-color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Практика с Fetch API</h1>
+        
+        <div class="controls">
+            <button class="button success" id="getPostsBtn">Получить посты</button>
+            <button class="button info" id="getUserBtn">Получить пользователя</button>
+            <button class="button error" id="invalidUrlBtn">Неверный URL (ошибка)</button>
+            <button class="button" id="createPostBtn">Создать пост (POST)</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">⏳ Загрузка...</div>
+        <div id="results"></div>
+        <div class="log" id="log3"></div>
+    </div>
+
+    <script>
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const log3 = document.getElementById('log3');
+
+        function addLog3(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.borderLeftColor = type === 'error' ? '#f44336' : 
+                                        type === 'success' ? '#4CAF50' : '#2196F3';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log3.appendChild(entry);
+        }
+
+        // 📌 1. БАЗОВЫЙ GET-ЗАПРОС С FETCH
+        document.getElementById('getPostsBtn').addEventListener('click', async function() {
+            addLog3('--- GET ЗАПРОС: Получение постов ---');
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            
+            try {
+                /* 
+                🔹 fetch() ВСЕГДА возвращает Promise
+                🔹 По умолчанию выполняется GET запрос
+                🔹 Базовый URL: JSONPlaceholder (тестовое API)
+                */
+                addLog3('1. Отправляем GET запрос к API...');
+                
+                const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=3');
+                
+                /* 
+                🔹 Response object содержит:
+                - status: HTTP статус код (200, 404, 500...)
+                - ok: boolean (true если статус 200-299)
+                - headers: метаданные ответа
+                */
+                addLog3(`2. Получен ответ: Status ${response.status}, OK: ${response.ok}`);
+                
+                if (!response.ok) {
+                    // Если статус не в диапазоне 200-299
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // 🔹 response.json() парсит JSON тело ответа
+                const posts = await response.json();
+                addLog3(`3. Данные распарсены, получено ${posts.length} постов`, 'success');
+                
+                // Отображаем результаты
+                results.innerHTML = posts.map(post => `
+                    <div class="post">
+                        <h3>📝 ${post.title}</h3>
+                        <p>${post.body}</p>
+                        <small>ID: ${post.id}, UserID: ${post.userId}</small>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                addLog3(`❌ Ошибка: ${error.message}`, 'error');
+                results.innerHTML = `<div class="post error">Ошибка: ${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // 📌 2. GET ЗАПРОС С ПАРАМЕТРАМИ
+        document.getElementById('getUserBtn').addEventListener('click', async function() {
+            addLog3('--- GET ЗАПРОС: Получение пользователя ---');
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            
+            try {
+                const userId = Math.floor(Math.random() * 10) + 1; // Случайный ID 1-10
+                addLog3(`1. Запрашиваем пользователя с ID: ${userId}`);
+                
+                const response = await fetch(`https://jsonplaceholder.typicode.com/users/${userId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Пользователь не найден! Status: ${response.status}`);
+                }
+                
+                const user = await response.json();
+                addLog3(`2. Получен пользователь: ${user.name}`, 'success');
+                
+                results.innerHTML = `
+                    <div class="post">
+                        <h3>👤 ${user.name}</h3>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Телефон:</strong> ${user.phone}</p>
+                        <p><strong>Website:</strong> ${user.website}</p>
+                        <p><strong>Компания:</strong> ${user.company.name}</p>
+                        <p><strong>Город:</strong> ${user.address.city}</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                addLog3(`❌ Ошибка: ${error.message}`, 'error');
+                results.innerHTML = `<div class="post error">${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // 📌 3. ОБРАБОТКА ОШИБОК СЕТИ
+        document.getElementById('invalidUrlBtn').addEventListener('click', async function() {
+            addLog3('--- ОШИБКА СЕТИ: Неверный URL ---');
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            
+            try {
+                // 🔹 Этот URL не существует - будет ошибка сети
+                const response = await fetch('https://invalid-url-that-does-not-exist.com/data');
+                const data = await response.json();
+                
+            } catch (error) {
+                /* 
+                🔹 Fetch выбрасывает ошибки для:
+                - Проблем с сетью (нет интернета, неверный URL)
+                - CORS ошибок
+                - Но НЕ для HTTP ошибок (404, 500) - их нужно проверять вручную
+                */
+                addLog3(`❌ Сетевая ошибка: ${error.message}`, 'error');
+                results.innerHTML = `
+                    <div class="post error">
+                        <h3>🌐 Сетевая ошибка</h3>
+                        <p>${error.message}</p>
+                        <p><small>Fetch не смог выполнить запрос к указанному URL</small></p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // 📌 4. POST ЗАПРОС - ОТПРАВКА ДАННЫХ
+        document.getElementById('createPostBtn').addEventListener('click', async function() {
+            addLog3('--- POST ЗАПРОС: Создание поста ---');
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            
+            try {
+                const newPost = {
+                    title: 'Новый пост с Fetch API',
+                    body: 'Этот пост был создан с помощью JavaScript Fetch API',
+                    userId: 1
+                };
+                
+                addLog3('1. Подготавливаем данные для отправки...');
+                
+                const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+                    method: 'POST', // 🔹 Указываем метод
+                    headers: {
+                        'Content-Type': 'application/json', // 🔹 Тип отправляемых данных
+                    },
+                    body: JSON.stringify(newPost) // 🔹 Преобразуем объект в JSON строку
+                });
+                
+                addLog3(`2. POST запрос отправлен, статус: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка создания поста! Status: ${response.status}`);
+                }
+                
+                const createdPost = await response.json();
+                addLog3(`3. Пост создан! ID: ${createdPost.id}`, 'success');
+                
+                results.innerHTML = `
+                    <div class="post">
+                        <h3>✅ Пост успешно создан!</h3>
+                        <p><strong>ID:</strong> ${createdPost.id}</p>
+                        <p><strong>Заголовок:</strong> ${createdPost.title}</p>
+                        <p><strong>Текст:</strong> ${createdPost.body}</p>
+                        <p><strong>UserID:</strong> ${createdPost.userId}</p>
+                        <p><em>Примечание: JSONPlaceholder не сохраняет данные, но имитирует успешный ответ</em></p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                addLog3(`❌ Ошибка: ${error.message}`, 'error');
+                results.innerHTML = `<div class="post error">${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
