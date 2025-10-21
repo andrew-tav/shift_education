@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Упражнение 3</title>
+</head>
+<body>
+    <button id="multiButton">Умная кнопка</button>
+    <div id="counter">Кликов: 0</div>
+
+    <script>
+        const multiButton = document.getElementById('multiButton');
+        const counter = document.getElementById('counter');
+        let clickCount = 0;
+
+        // Первый обработчик - меняет цвет
+        function changeColor() {
+            const colors = ['red', 'blue', 'green', 'purple', 'orange'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            multiButton.style.backgroundColor = randomColor;
+        }
+
+        // Второй обработчик - счетчик
+        function updateCounter() {
+            clickCount++;
+            counter.textContent = `Кликов: ${clickCount}`;
+            
+            if (clickCount >= 5) {
+                counter.style.fontWeight = 'bold';
+                counter.style.color = 'red';
+            }
+        }
+
+        // Третий обработчик - показывает alert после 3 кликов
+        function showAlert() {
+            if (clickCount === 3) {
+                alert('Вы достигли 3 кликов! 🏆');
+            }
+        }
+
+        // Назначаем ВСЕ три обработчика на одну кнопку
+        multiButton.addEventListener('click', changeColor);
+        multiButton.addEventListener('click', updateCounter);
+        multiButton.addEventListener('click', showAlert);
+
+        /*
+        КОНТЕКСТ ИСПОЛНЕНИЯ:
+        1. При клике ВСЕ три функции выполняются ПО ОЧЕРЕДИ
+        2. Порядок выполнения: changeColor → updateCounter → showAlert
+        3. Каждая функция работает независимо
+        4. Все они получают один и тот же объект event
+        */
+    </script>   
+    </body>
+</html>

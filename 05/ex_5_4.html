@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Упражнение 4</title>
+</head>
+    <body>
+    <button id="limitedButton">Работает 3 раза (осталось: 3)</button>
+
+    <script>
+        const limitedButton = document.getElementById('limitedButton');
+        let attempts = 3;
+
+        function limitedAction() {
+            attempts--;
+            limitedButton.textContent = `Работает 3 раза (осталось: ${attempts})`;
+            
+            if (attempts <= 0) {
+                // Удаляем обработчик после 3 использований
+                limitedButton.removeEventListener('click', limitedAction);
+                limitedButton.textContent = 'Кнопка больше не работает';
+                limitedButton.style.backgroundColor = 'gray';
+                limitedButton.style.cursor = 'not-allowed';
+            }
+        }
+
+        // Назначаем обработчик
+        limitedButton.addEventListener('click', limitedAction);
+
+        /*
+        ВАЖНЫЕ МОМЕНТЫ КОНТЕКСТА:
+        1. Функция limitedAction должна быть объявлена ДО addEventListener
+        2. Для removeEventListener нужно передать ТУ ЖЕ САМУЮ функцию
+        3. Переменная attempts сохраняет свое значение между вызовами
+        */
+    </script>    
+    </body>
+</html>
+

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="sensitiveArea" style="width: 200px; height: 100px; border: 2px solid black; padding: 20px;">
+        Эта область чувствительна к событиям
+    </div>
+    <div id="eventLog" style="margin-top: 10px;"></div>
+
+    <script>
+        const area = document.getElementById('sensitiveArea');
+        const log = document.getElementById('eventLog');
+
+        function addLog(message) {
+            log.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+
+        // Разные типы событий на одном элементе
+        area.addEventListener('mouseenter', function() {
+            addLog('Мышь над областью 🖱️');
+            area.style.backgroundColor = 'lightyellow';
+        });
+
+        area.addEventListener('mouseleave', function() {
+            addLog('Мышь покинула область 🚪');
+            area.style.backgroundColor = 'white';
+        });
+
+        area.addEventListener('mousedown', function() {
+            addLog('Нажата кнопка мыши 👇');
+        });
+
+        area.addEventListener('mouseup', function() {
+            addLog('Отпущена кнопка мыши 👆');
+        });
+
+        area.addEventListener('click', function() {
+            addLog('Клик! ✅');
+        });
+
+        /*
+        ПОСЛЕДОВАТЕЛЬНОСТЬ СОБЫТИЙ ПРИ КЛИКЕ:
+        1. mouseenter (если мышь только что вошла)
+        2. mousedown (нажатие)
+        3. mouseup (отпускание)
+        4. click (полный клик)
+        5. mouseleave (если мышь ушла)
+        */
+    </script>   
+</body>
+</html>

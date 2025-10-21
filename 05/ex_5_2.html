@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Упражнение 2</title>>
+</head>
+<body>
+    <button id="coordButton">Кликни где угодно</button>
+    <div id="coordDisplay"></div>
+
+    <script>
+        const coordButton = document.getElementById('coordButton');
+        const coordDisplay = document.getElementById('coordDisplay');
+
+        // Обработчик получает параметр event автоматически
+        function showCoordinates(event) {
+            /*
+            КОГДА ПРОИСХОДИТ КЛИК:
+            Браузер автоматически создает объект event и передает его в функцию
+            В event содержится вся информация о событии
+            */
+            
+            const x = event.clientX; // Координата X курсора
+            const y = event.clientY; // Координата Y курсора
+            
+            coordDisplay.innerHTML = `
+                Вы кликнули в позиции:<br>
+                X: ${x}px<br>
+                Y: ${y}px
+            `;
+        }
+
+        coordButton.addEventListener('click', showCoordinates);
+
+        /*
+        ЧТО ПРОИСХОДИТ В КОНТЕКСТЕ:
+        1. Пользователь кликает на кнопку
+        2. Браузер генерирует объект события со всей информацией
+        3. Автоматически вызывает showCoordinates(event)
+        4. Мы используем данные из event для отображения
+        */
+    </script>   
+    </body>
+</html>

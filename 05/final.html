@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Итоговое упражнение</title>
+</head>
+<body>
+    <div class="control-panel">
+        <button id="startBtn">Старт</button>
+        <button id="stopBtn">Стоп</button>
+        <button id="resetBtn">Сброс</button>
+        <div id="status">Статус: Остановлен</div>
+        <div id="timer">Время: 0с</div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const status = document.getElementById('status');
+        const timer = document.getElementById('timer');
+        
+        let seconds = 0;
+        let timerId = null;
+
+        function startTimer() {
+            if (timerId) return; // Уже запущен
+            
+            status.textContent = 'Статус: Запущен';
+            status.style.color = 'green';
+            
+            timerId = setInterval(() => {
+                seconds++;
+                timer.textContent = `Время: ${seconds}с`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (!timerId) return; // Не запущен
+            
+            clearInterval(timerId);
+            timerId = null;
+            status.textContent = 'Статус: Остановлен';
+            status.style.color = 'red';
+        }
+
+        function resetTimer() {
+            stopTimer();
+            seconds = 0;
+            timer.textContent = 'Время: 0с';
+            status.textContent = 'Статус: Сброшен';
+            status.style.color = 'blue';
+        }
+
+        // Назначаем обработчики
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        /*
+        КОНТЕКСТ ВЗАИМОДЕЙСТВИЯ:
+        1. Пользователь кликает кнопки в любом порядке
+        2. Каждая кнопка вызывает свою функцию
+        3. Функции меняют общее состояние (seconds, timerId)
+        4. Интерфейс автоматически обновляется
+        */
+    </script>    
+</body>
+</html>
