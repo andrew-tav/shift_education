@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Todo App</title>
+  <style>
+    .completed { text-decoration: line-through; opacity: 0.6; }
+    .todo-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>Мои задачи</h1>
+    <form id="todo-form">
+      <input type="text" id="todo-input" placeholder="Новая задача..." required>
+      <button type="submit">Добавить</button>
+    </form>
+    <ul id="todo-list"></ul>
+    <div id="stats">
+      Всего: <span id="total">0</span> |
+      Выполнено: <span id="completed">0</span>
+    </div>
+  </div>
+
+  <script>
+    class TodoApp {
+      constructor() {
+        this.todos = JSON.parse(localStorage.getItem('todos')) || [];
+        this.form = document.getElementById('todo-form');
+        this.input = document.getElementById('todo-input');
+        this.list = document.getElementById('todo-list');
+        this.totalSpan = document.getElementById('total');
+        this.completedSpan = document.getElementById('completed');
+        
+        this.init();
+      }
+      
+      init() {
+        this.form.addEventListener('submit', this.addTodo.bind(this));
+        this.render();
+      }
+      
+      addTodo(event) {
+        event.preventDefault();
+        
+        const text = this.input.value.trim();
+        if (!text) return;
+        
+        const todo = {
+          id: Date.now(),
+          text: text,
+          completed: false,
+          createdAt: new Date().toISOString()
+        };
+        
+        this.todos.push(todo);
+        this.saveToStorage();
+        this.render();
+        this.input.value = '';
+      }
+      
+      toggleTodo(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo) {
+          todo.completed = !todo.completed;
+          this.saveToStorage();
+          this.render();
+        }
+      }
+      
+      deleteTodo(id) {
+        this.todos = this.todos.filter(t => t.id !== id);
+        this.saveToStorage();
+        this.render();
+      }
+      
+      render() {
+        // Очищаем список
+        this.list.innerHTML = '';
+        
+        // Создаем элементы задач
+        this.todos.forEach(todo => {
+          const li = document.createElement('li');
+          li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+          li.innerHTML = `
+            <input type="checkbox" ${todo.completed ? 'checked' : ''}>
+            <span>${todo.text}</span>
+            <button class="delete-btn" data-id="${todo.id}">Удалить</button>
+            <small>${new Date(todo.createdAt).toLocaleDateString()}</small>
+          `;
+          
+          // Добавляем обработчики
+          const checkbox = li.querySelector('input[type="checkbox"]');
+          const deleteBtn = li.querySelector('.delete-btn');
+          
+          checkbox.addEventListener('change', () => this.toggleTodo(todo.id));
+          deleteBtn.addEventListener('click', () => this.deleteTodo(todo.id));
+          
+          this.list.appendChild(li);
+        });
+        
+        // Обновляем статистику
+        this.updateStats();
+      }
+      
+      updateStats() {
+        const total = this.todos.length;
+        const completed = this.todos.filter(t => t.completed).length;
+        
+        this.totalSpan.textContent = total;
+        this.completedSpan.textContent = completed;
+      }
+      
+      saveToStorage() {
+        localStorage.setItem('todos', JSON.stringify(this.todos));
+      }
+    }
+    
+    // Инициализация приложения
+    document.addEventListener('DOMContentLoaded', () => {
+      new TodoApp();
+    });
+  </script>
+</body>
+</html>
